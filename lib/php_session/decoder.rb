@@ -30,7 +30,7 @@ module PHPSession
       @array.unshift({
         :length => length,
         :consumed_count => 0,
-        :klass => nil
+        :klass => klass
       })
     end
     def elements_count
@@ -69,7 +69,14 @@ module PHPSession
 
           klass  = array_which_finished[:klass];
           if klass
-            process_value(Struct.new(klass, *key_values[:key]).new(*key_values[:value]))
+            if Struct.const_defined?(klass)
+              struct = Struct.const_get(klass)
+            else
+              struct = Struct.new(klass, *key_values[:key])
+            end
+            process_value(struct.new(*key_values[:value]))
+            @state = State::ArrayEnd
+            @state.parse(self)
           else
             hash = {}
             key_values_array.each_slice(2) do |kv|
@@ -78,7 +85,6 @@ module PHPSession
             process_value(hash)
 
             @state = State::ArrayEnd
-
             @state.parse(self)
           end
         else
@@ -132,7 +138,7 @@ module PHPSession
             decoder.process_value(bool)
           when /^O:(\d+):(.*)/ # object
             decoder.buffer = $2
-            decoder.stack.push($1);
+            decoder.stack.push($1.to_i);
             decoder.state = ClassName
           when /^[Rr]:(\d+);(.*)/ # reference count?
             decoder.buffer = $2
@@ -177,18 +183,17 @@ module PHPSession
       end
       class ClassName
         def self.parse(decoder)
-          length = $decoder.pop_stack();
+          length = decoder.stack.pop;
           length_include_quotes = length + 3
+
+          value_include_quotes = decoder.buffer[0, length_include_quotes]
+          klass = value_include_quotes.gsub(/^"/,'').gsub(/":$/,'')
 
           decoder.buffer = decoder.buffer[length_include_quotes..-1]
 
-          value_include_quotes = decoder.buffer[0..(length_include_quotes - 1)]
-          klass = buffer.gsub(/^"/,'').gsub(/":$/,'')
-
           raise Errors::ParseError, "invalid class format" unless decoder.buffer =~ /^(\d+):(.*)/
-            decoder.buffer = Regex.last_match[1]
-          length = Regex.last_match[0]
-          decoder.start_array(length, klass)
+          decoder.buffer = $2
+          decoder.start_array($1.to_i, klass)
           decoder.state = ArrayStart
         end
       end

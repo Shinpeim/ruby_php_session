@@ -73,6 +73,20 @@ describe PHPSession::Decoder do
         })
       end
     end
+    context "when given a object" do
+      it "should return a hash which has a object" do
+        data = PHPSession::Decoder.decode('key|O:4:"Nyan":1:{s:1:"k";s:1:"v";}')
+        expect(data["key"].class).to eq(Struct::Nyan)
+        expect(data["key"].k).to eq("v")
+      end
+    end
+    context "when given objects which have same class" do
+      it "should return same class Structs" do
+        data = PHPSession::Decoder.decode('key|a:2:{s:1:"1";O:4:"Nyan":1:{s:1:"k";s:1:"v";}s:1:"2";O:4:"Nyan":1:{s:1:"k";s:1:"v";}}')
+        expect(data["key"]["1"].class).to eq(Struct::Nyan)
+        expect(data["key"]["1"].k).to eq("v")
+      end
+    end
     context "when given multi key session data" do
       it "should return a hash which has multipul keys" do
         expect(
