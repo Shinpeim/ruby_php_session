@@ -1,70 +1,70 @@
 require 'spec_helper'
 
-describe PHPSession::Serializer::PHP::Decoder do
+describe PHPSession::Decoder do
   describe ".decode" do
     context "when given invalid session format" do
       it "should raise ParseError" do
         expect {
-          PHPSession::Serializer::PHP::Decoder.decode("invalid format string")
+          PHPSession::Decoder.decode("invalid format string")
         }.to raise_error(PHPSession::Errors::ParseError)
       end
     end
     context "when given a String value in session data" do
       it "should return a hash which has a string" do
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key|s:3:"str";')
+          PHPSession::Decoder.decode('key|s:3:"str";')
         ).to eq({"key" => "str"})
       end
     end
     context "when given a multibyte string in session data" do
       it "should return a hash which has a multibyte string" do
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key|s:9:"テスト";')
+          PHPSession::Decoder.decode('key|s:9:"テスト";')
         ).to eq({"key" => "テスト"})
       end
     end
     context "when given a Integer value in session data" do
       it "should return a hash which has a int value" do
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key|i:10;')
+          PHPSession::Decoder.decode('key|i:10;')
         ).to eq({"key" => 10})
       end
     end
     context "when given a doulble value in session data" do
       it "should return a hash which has a float value" do
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key|d:3.1415;')
+          PHPSession::Decoder.decode('key|d:3.1415;')
         ).to eq({"key" => 3.1415})
       end
     end
     context "when given a null in session data" do
       it "should return a hash which has a nil" do
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key|N;')
+          PHPSession::Decoder.decode('key|N;')
         ).to eq({"key" => nil})
       end
     end
     context "when given boolean in session data" do
       it "should return a  hash which has a boolean" do
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key|b:1;')
+          PHPSession::Decoder.decode('key|b:1;')
         ).to eq({"key" => true})
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key|b:0;')
+          PHPSession::Decoder.decode('key|b:0;')
         ).to eq({"key" => false})
       end
     end
     context "when given a empty array in session data" do
       it "should return a hash which contains no data" do
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key|a:0:{}')
+          PHPSession::Decoder.decode('key|a:0:{}')
         ).to eq({"key" => {}})
       end
     end
     context "when given a AssociatedArray value in session data" do
       it "should return a hash which has a hash" do
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key|a:2:{s:2:"k1";s:2:"v1";s:2:"k2";s:2:"v2";}')
+          PHPSession::Decoder.decode('key|a:2:{s:2:"k1";s:2:"v1";s:2:"k2";s:2:"v2";}')
         ).to eq({
           "key" => {
             "k1" => "v1",
@@ -76,7 +76,7 @@ describe PHPSession::Serializer::PHP::Decoder do
     context "when given multi key session data" do
       it "should return a hash which has multipul keys" do
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key1|d:3.1415;key2|s:4:"hoge";')
+          PHPSession::Decoder.decode('key1|d:3.1415;key2|s:4:"hoge";')
         ).to eq({
           "key1" => 3.1415,
           "key2" => "hoge",
@@ -86,7 +86,7 @@ describe PHPSession::Serializer::PHP::Decoder do
     context "when given nested array" do
       it "should return a nested array" do
         expect(
-          PHPSession::Serializer::PHP::Decoder.decode('key1|a:1:{s:1:"a";a:1:{s:1:"b";s:1:"c";}}')
+          PHPSession::Decoder.decode('key1|a:1:{s:1:"a";a:1:{s:1:"b";s:1:"c";}}')
         ).to eq({
           "key1" => {
             "a" => {
@@ -101,7 +101,7 @@ describe PHPSession::Serializer::PHP::Decoder do
         session_data = <<'EOS'
 Config|a:3:{s:9:"userAgent";s:32:"d2673506d1c64ae55d1ea2421143f994";s:4:"time";i:1382414678;s:7:"timeout";i:10;}Account|a:2:{s:7:"Account";a:14:{s:2:"id";s:1:"1";s:7:"user_id";s:1:"1";s:5:"state";s:6:"active";s:5:"email";s:16:"test@example.com";s:8:"password";s:32:"5a2c1429a27a9783609e8b429748aa33";s:10:"owner_flag";b:1;s:4:"name";s:9:"テスト";s:7:"created";s:19:"2013-10-16 11:21:35";s:8:"modified";s:19:"2013-10-16 11:21:36";s:4:"uuid";s:36:"0e866700-c572-4d17-aab3-de0f35cf502e";s:10:"user_state";s:6:"active";s:8:"pc1_flag";b:0;s:10:"account_id";s:1:"1";s:8:"rmc_type";s:2:"pc";}s:4:"User";a:20:{s:2:"id";s:1:"1";s:12:"company_name";s:9:"テスト";s:13:"producer_name";s:9:"テスト";s:16:"consumer_message";s:0:"";s:7:"created";s:19:"2013-10-16 11:21:35";s:8:"modified";s:19:"2013-10-16 11:21:35";s:5:"state";s:6:"active";s:10:"apply_flag";b:0;s:9:"paid_flag";b:0;s:17:"company_name_kana";s:0:"";s:18:"producer_name_kana";s:0:"";s:15:"payer_name_kana";s:0:"";s:8:"zip_code";s:0:"";s:10:"prefecture";s:0:"";s:7:"address";s:0:"";s:8:"address2";s:0:"";s:5:"phone";s:0:"";s:5:"other";s:0:"";s:4:"uuid";s:36:"f6120e89-0554-449a-9c79-aa330ba9d6c5";s:8:"pc1_flag";b:0;}}Auth|a:0:{}
 EOS
-        expect(PHPSession::Serializer::PHP::Decoder.decode(session_data)).to eq({
+        expect(PHPSession::Decoder.decode(session_data)).to eq({
           "Config" => {
             "userAgent"=>"d2673506d1c64ae55d1ea2421143f994",
             "time"=>1382414678,
