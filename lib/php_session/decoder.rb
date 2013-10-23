@@ -104,10 +104,14 @@ module PHPSession
 
     def define_or_find_struct(name, properties)
       if Struct.const_defined?(name)
-        Struct.const_get(name)
+        struct = Struct.const_get(name)
+        if struct.members.sort != properties.map(&:to_sym).sort
+          raise Errors::ParseError, "objects properties don't match with the other object which has same class"
+        end
       else
-        Struct.new(name, *properties)
+        struct = Struct.new(name, *properties)
       end
+      struct
     end
 
     module State
