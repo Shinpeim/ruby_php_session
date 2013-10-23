@@ -54,7 +54,14 @@ module PHPSession
 
     def process_empty_array_value
       array_which_finished  = @array.shift
-      process_value({})
+
+      klass  = array_which_finished[:klass];
+      if klass
+        struct = define_or_find_struct(klass, [])
+        process_value(struct.new)
+      else
+        process_value({})
+      end
       @state = State::ArrayEnd
     end
     def process_value(value)
@@ -69,11 +76,7 @@ module PHPSession
 
           klass  = array_which_finished[:klass];
           if klass
-            if Struct.const_defined?(klass)
-              struct = Struct.const_get(klass)
-            else
-              struct = Struct.new(klass, *key_values[:key])
-            end
+            struct = define_or_find_struct(klass, key_values[:key])
             process_value(struct.new(*key_values[:value]))
             @state = State::ArrayEnd
             @state.parse(self)
@@ -97,6 +100,16 @@ module PHPSession
       end
     end
 
+    private
+
+    def define_or_find_struct(name, properties)
+      if Struct.const_defined?(name)
+        Struct.const_get(name)
+      else
+        Struct.new(name, *properties)
+      end
+    end
+
     module State
       class VarName
         def self.parse(decoder)
@@ -109,6 +122,7 @@ module PHPSession
           decoder.state = VarType
         end
       end
+
       class VarType
         def self.parse(decoder)
           case decoder.buffer
@@ -148,6 +162,7 @@ module PHPSession
           end
         end
       end
+
       class String
         def self.parse(decoder)
           length = decoder.stack.pop
@@ -162,6 +177,7 @@ module PHPSession
           decoder.process_value(value)
         end
       end
+
       class ArrayStart
         def self.parse(decoder)
           raise Errors::ParseError, "invalid array format" unless decoder.buffer =~ /^{/
@@ -173,6 +189,7 @@ module PHPSession
           end
         end
       end
+
       class ArrayEnd
         def self.parse(decoder)
           raise Errors::ParseError, "invalid array format" unless decoder.buffer =~ /^}/
@@ -181,6 +198,7 @@ module PHPSession
           decoder.state = next_state
         end
       end
+
       class ClassName
         def self.parse(decoder)
           length = decoder.stack.pop;

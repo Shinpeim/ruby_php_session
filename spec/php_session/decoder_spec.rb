@@ -80,6 +80,13 @@ describe PHPSession::Decoder do
         expect(data["key"].k).to eq("v")
       end
     end
+    context "when given a object which has no property" do
+      it "should return a hash which has a object" do
+        data = PHPSession::Decoder.decode('key|O:4:"Piyo":0:{}')
+        expect(data["key"].class).to eq(Struct::Piyo)
+      end
+    end
+
     context "when given objects which have same class" do
       it "should return same class Structs" do
         data = PHPSession::Decoder.decode('key|a:2:{s:1:"1";O:4:"Nyan":1:{s:1:"k";s:1:"v";}s:1:"2";O:4:"Nyan":1:{s:1:"k";s:1:"v";}}')
