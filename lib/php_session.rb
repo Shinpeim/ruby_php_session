@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require "php_session/version"
 require "php_session/errors"
 require "php_session/decoder"
