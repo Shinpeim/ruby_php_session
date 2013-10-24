@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = PHPSession::VERSION
   spec.authors       = ["Shinpei Maruyama"]
   spec.email         = ["shinpeim@gmail.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
-  spec.homepage      = ""
+  spec.description   = %q{php session reader/writer}
+  spec.summary       = %q{php_session is a php session file reader/writer. Multibyte string and exclusiv control is supported}
+  spec.homepage      = "https://github.com/Shinpeim/ruby_php_session"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
