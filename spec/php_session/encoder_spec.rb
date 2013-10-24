@@ -83,5 +83,12 @@ describe PHPSession::Encoder do
         ).to eq('key|a:1:{s:4:"hoge";a:1:{s:4:"fuga";s:4:"nyan";}}')
       end
     end
+    context "when given other types" do
+      it "should raise EncodeError" do
+        expect {
+          PHPSession::Encoder.encode({:key => Date.today})
+        }.to raise_error PHPSession::Errors::EncodeError
+      end
+    end
   end
 end

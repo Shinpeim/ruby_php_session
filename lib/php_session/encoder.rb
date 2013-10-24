@@ -31,6 +31,8 @@ class PHPSession
         ArraySerializer
       when klass <= Struct
         StructSerializer
+      else
+        raise Errors::EncodeError, "unsupported class:#{klass.to_s} is passed."
       end
     end
 
