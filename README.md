@@ -1,5 +1,5 @@
 # PHPSession
-[![Build Status](https://travis-ci.org/Shinpeim/ruby_php_session.png)](https://travis-ci.org/Shinpeim/ruby_php_session.png)
+[![Build Status](https://travis-ci.org/Shinpeim/ruby_php_session.png?branch=master)](https://travis-ci.org/Shinpeim/ruby_php_session)
 
 PHPSession is a php session file reader/writer. Multibyte string and exclusive control are supported.
 
@@ -39,7 +39,7 @@ Or install it yourself as:
 
       # save session and release the lock
       session.commit(data)
-      
+
       # delete session file and release the lock
       session.destroy
     ensure
