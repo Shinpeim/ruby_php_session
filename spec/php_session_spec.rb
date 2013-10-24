@@ -1,26 +1,36 @@
 require 'spec_helper'
 
 describe PHPSession do
-  describe "#[]" do
+  describe "load" do
     context "when session file exists" do
       before do
         @session_file = create_dummy_session_file('key|s:1:"a";')
       end
+
       it "should return session data" do
         session = PHPSession.new(@session_file[:dir_name], @session_file[:session_id])
-        expect(session["key"]).to eq("a")
-
-        session.ensure_file_closed
+        begin
+          data = session.load
+          expect(data).to eq({"key" => "a"})
+        ensure
+          session.ensure_file_closed
+        end
       end
 
       after do
         File.delete(@session_file[:file_path])
       end
     end
+
     context "when session file dosen't exist" do
-      it "should return nil" do
+      it "should return new session data" do
         session = PHPSession.new(Dir.tmpdir,"session_id")
-        expect(session["key"]).to eq(nil)
+        begin
+          data = session.load
+          expect(data).to eq({})
+        ensure
+          session.ensure_file_closed
+        end
       end
     end
   end
@@ -32,8 +42,9 @@ describe PHPSession do
 
     it "should save session_data in session_file" do
       session = PHPSession.new(@session_file[:dir_name], @session_file[:session_id])
-      session["key"] = "b"
-      session.commit
+      data = session.load
+      data["key"] = "b"
+      session.commit(data)
 
       expect(IO.read(@session_file[:file_path])).to eq('key|s:1:"b";')
     end
@@ -44,22 +55,29 @@ describe PHPSession do
   end
 
   describe "#destroy" do
-    before do
-      @session_file = create_dummy_session_file('key|s:1:"a";')
+    context "when session file exists and loaded" do
+      before do
+        @session_file = create_dummy_session_file('key|s:1:"a";')
+        @session = PHPSession.new(@session_file[:dir_name], @session_file[:session_id])
+        @session.load
+      end
+
+      it "should delete session file" do
+        @session.destroy
+        expect(File.exists?(@session_file[:file_path])).to eq(false)
+      end
     end
 
-    it "should resete session data" do
-      session = PHPSession.new(@session_file[:dir_name], @session_file[:session_id])
-      session.destroy
+    context "when session file exists and not loaded" do
+      before do
+        @session_file = create_dummy_session_file('key|s:1:"a";')
+        @session = PHPSession.new(@session_file[:dir_name], @session_file[:session_id])
+      end
 
-      expect(session["key"]).to eq(nil)
-    end
-
-    it "should delete session file" do
-      session = PHPSession.new(@session_file[:dir_name], @session_file[:session_id])
-      session.destroy
-
-      expect(File.exists?(@session_file[:file_path])).to eq(false)
+      it "should delete session file" do
+        @session.destroy
+        expect(File.exists?(@session_file[:file_path])).to eq(false)
+      end
     end
   end
 end

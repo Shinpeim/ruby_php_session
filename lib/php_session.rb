@@ -4,46 +4,46 @@ require "php_session/decoder"
 require "php_session/encoder"
 
 class PHPSession
+  attr_reader :data
   def initialize(session_dir, session_id)
     @session_dir = File.expand_path(session_dir)
     set_session_id(session_id)
 
+    @file = nil
+  end
+
+  def load
     @file = File.open(file_path, File::CREAT|File::RDWR)
-    unless @file
-      raise PHPSession::Errors, "can't open session file"
-    end
 
     unless @file.flock(File::LOCK_EX)
       raise PHPSession::Errors, "can't obtain lock of session file"
     end
 
-    @session = Decoder.decode(@file.read) || {}
+    data = Decoder.decode(@file.read) || {}
     @file.rewind
-  end
-
-  def [](key)
-    @session[key]
-  end
-
-  def []=(key, value)
-    @session[key] = value
+    data
   end
 
   def destroy
-    @session = {}
-    @file.truncate(0)
+    if @file && ! @file.closed?
+      @file.truncate(0)
+    end
     ensure_file_closed
     File.delete(file_path)
+  rescue Errno::ENOENT => e
+    # file already deleted
   end
 
-  def commit
+  def commit(data)
     @file.truncate(0)
-    @file.write(Encoder.encode(@session))
+    @file.write(Encoder.encode(data))
     ensure_file_closed
   end
 
   def ensure_file_closed
-    @file.close unless @file.closed?
+    if @file && ! @file.closed?
+      @file.close
+    end
   end
 
   private
