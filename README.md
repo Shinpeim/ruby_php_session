@@ -5,8 +5,8 @@ PHPSession is a php session file reader/writer. Multibyte string and exclusive c
 
 When decoding php session data to ruby objects,
 
-* An associative array in PHP is mapped to a hash in ruby.
-* Object in PHP is mapped to Struct::ClassName in ruby.
+* Associative arrays in PHP is mapped to hashes in ruby.
+* Objects in PHP is mapped to instances of Struct::ClassName in ruby.
 
 When encoding ruby objects to php session data,
 
