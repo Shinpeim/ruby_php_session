@@ -1,4 +1,4 @@
-module PHPSession
+class PHPSession
   class Encoder
     def self.encode(hash)
       serialized = hash.map do|k,v|

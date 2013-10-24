@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-module PHPSession
+class PHPSession
   class Decoder
     attr_accessor :buffer, :state, :stack, :array
     attr_reader :encoding
