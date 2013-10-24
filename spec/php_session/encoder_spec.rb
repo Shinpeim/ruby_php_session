@@ -63,10 +63,10 @@ describe PHPSession::Encoder do
     end
     context "when given Struct" do
       it "should return 'KEY|o:CLASSNAME_SIZE:PROPERTIES_SIZE:{PROPERTIES_AND_VALUES}'" do
-        nyan = Struct.new("Nyan", :p1, :p2)
+        piyo = Struct.const_defined?(:Test) ? Struct.const_get(:Test) : Struct.new("Test", :p1, :p2)
         expect(
-          PHPSession::Encoder.encode(:hoge => nyan.new(1,2))
-        ).to eq('hoge|o:4:"Nyan":2:{s:2:"p1";i:1;s:2:"p2";i:2;}')
+          PHPSession::Encoder.encode(:hoge => piyo.new(1, 2))
+        ).to eq('hoge|o:4:"Test":2:{s:2:"p1";i:1;s:2:"p2";i:2;}')
       end
     end
     context "when given nested value" do
