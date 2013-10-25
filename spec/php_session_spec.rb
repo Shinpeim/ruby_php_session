@@ -2,8 +2,29 @@
 require 'spec_helper'
 
 describe PHPSession do
+  describe "loaded?" do
+    before do
+      @session_file = create_dummy_session_file('key|s:1:"a";')
+    end
+
+    it "should return true when file is loaded" do
+      session = PHPSession.new(@session_file[:dir_name])
+      session.load(@session_file[:session_id])
+      expect(session.loaded?).to be_true
+    end
+
+    it "should return false when file is loaded" do
+      session = PHPSession.new(@session_file[:dir_name])
+      expect(session.loaded?).to be_false
+    end
+
+    after do
+      File.delete(@session_file[:file_path])
+    end
+  end
+
   describe "load" do
-    context "when session file encoding is utf8" do
+   context "when session file encoding is utf8" do
       before do
         @session_file = create_dummy_session_file('key|s:13:"テスト🍺";')
       end
@@ -49,6 +70,7 @@ describe PHPSession do
           session.ensure_file_closed
         end
       end
+
       after do
         File.delete(@session_file[:file_path])
       end

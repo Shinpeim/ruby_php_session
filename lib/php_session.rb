@@ -33,6 +33,10 @@ class PHPSession
     data
   end
 
+  def loaded?
+    ! @file.nil?
+  end
+
   def destroy
     if @file && ! @file.closed?
       @file.truncate(0)
