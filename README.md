@@ -1,6 +1,6 @@
 # PHPSession
 [![Build Status](https://travis-ci.org/Shinpeim/ruby_php_session.png?branch=master)](https://travis-ci.org/Shinpeim/ruby_php_session)
-
+[![Code Climate](https://codeclimate.com/github/Shinpeim/ruby_php_session.png)](https://codeclimate.com/github/Shinpeim/ruby_php_session)
 ## Description
 PHPSession is a php session file reader/writer. Multibyte string and exclusive control are supported.
 
@@ -23,25 +23,25 @@ Passing option to PHPSession.new, you can handle encodings.
 Options are:
 
 * :internal_encoding
-    
+
     When this value is not nil, Session decoder tries to
     encode string values into this encoding.
-    
+
     For a instance, if your php session file written in EUC-JP and you
     like to handle string as UTF-8 in Ruby, you should set :internal_encoding
     as "UTF-8" and :external_encoding as "EUC-JP".
 
     Default value is Encoding.default_internal.
-    
+
 * :external_encoding
-    
+
     This value should be same as php session file's encoding.
     Encoder tries to encode string values into this encoding.
-    
+
     Default value is Encoding.default_external.
-    
+
 * :encoding_option
-    
+
     This value is passed to String#encode.
 
 
@@ -66,7 +66,7 @@ Or install it yourself as:
         :external_encoding => "EUC-JP", # encoding of sesion file is EUC-JP
         :encoding_option   => {:undef => :replace} # passed to String#encode
     }
-    # option's default values are 
+    # option's default values are
     # :internal_encoding => Encoding.default_internal_encoding
     # :external_encoding => Encoding.default_external_encoding
     # :encoding_option   => {}
@@ -75,7 +75,7 @@ Or install it yourself as:
     begin
       # load session data from file and obtain a lock
       data = session.load
-      
+
       data.is_a? Hash # => true
 
       # save session and release the lock
