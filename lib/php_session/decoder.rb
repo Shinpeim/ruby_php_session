@@ -4,12 +4,12 @@ class PHPSession
     attr_accessor :buffer, :state, :stack, :array
     attr_reader :encoding
 
-    def self.decode(string, encoding = "UTF-8")
-      self.new(string, encoding).decode
+    def self.decode(string)
+      self.new(string).decode
     end
 
-    def initialize(string, encoding)
-      @encoding = encoding
+    def initialize(string)
+      @encoding = string.encoding
       @buffer = string.force_encoding("ASCII-8BIT")
       @data = {}
       @state = State::VarName
