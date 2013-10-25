@@ -1,88 +1,106 @@
 # -*- coding: utf-8 -*-
 class PHPSession
   class Encoder
-    def self.encode(hash)
+    attr_reader :encoding, :encoding_option
+    def self.encode(hash, encoding = nil, encoding_option = {})
+      encoding = Encoding.default_external if encoding.nil?
+      self.new(encoding, encoding_option).encode(hash)
+    end
+
+    def initialize(encoding, encoding_option)
+      @encoding = encoding
+      @encoding_option = encoding_option
+    end
+
+    def encode(hash)
       serialized = hash.map do|k,v|
-        "#{k}|#{serialize(v)}"
+        "#{k.to_s}|#{serialize(v)}"
       end
       serialized.join
     end
 
-    private
-
-    def self.serialize(value)
+    def serialize(value)
       get_serializer(value.class).serialize(value)
     end
 
-    def self.get_serializer(klass)
+    private
+
+    def get_serializer(klass)
       case
       when klass <= String || klass <= Symbol
-        StringSerializer
+        StringSerializer.new(self)
       when klass <= Integer
-        IntegerSerializer
+        IntegerSerializer.new(self)
       when klass <= Float
-        FloatSerializer
+        FloatSerializer.new(self)
       when klass <= NilClass
-        NilSerializer
+        NilSerializer.new(self)
       when klass <= TrueClass || klass <= FalseClass
-        BooleanSerializer
+        BooleanSerializer.new(self)
       when klass <= Hash
-        HashSerializer
+        HashSerializer.new(self)
       when klass <= Array
-        ArraySerializer
+        ArraySerializer.new(self)
       when klass <= Struct
-        StructSerializer
+        StructSerializer.new(self)
       else
         raise Errors::EncodeError, "unsupported class:#{klass.to_s} is passed."
       end
     end
 
-   class StringSerializer
-      def self.serialize(value)
-        s = value.to_s
+    class Serializer
+      def initialize(encoder)
+        @encoder = encoder
+      end
+    end
+    class StringSerializer < Serializer
+      def serialize(value)
+        value = value.to_s
+        # encode here for valid bytesize
+        s = value.encode(@encoder.encoding, @encoder.encoding_option)
         %|s:#{s.bytesize}:"#{s}";|
       end
     end
-    class IntegerSerializer
-      def self.serialize(value)
+    class IntegerSerializer < Serializer
+      def serialize(value)
         %|i:#{value};|
       end
     end
-    class FloatSerializer
-      def self.serialize(value)
+    class FloatSerializer < Serializer
+      def serialize(value)
         %|d:#{value};|
       end
     end
-    class NilSerializer
-      def self.serialize(value)
+    class NilSerializer < Serializer
+      def serialize(value)
         %|N;|
       end
     end
-    class BooleanSerializer
-      def self.serialize(value)
+    class BooleanSerializer < Serializer
+      def serialize(value)
         %|b:#{value ? 1 : 0};|
       end
     end
-    class HashSerializer
-      def self.serialize(value)
+    class HashSerializer < Serializer
+      def serialize(value)
         serialized_values = value.map do |k, v|
-          [Encoder.serialize(k), Encoder.serialize(v)]
+          [@encoder.serialize(k), @encoder.serialize(v)]
         end
         %|a:#{value.size}:{#{serialized_values.flatten.join}}|
       end
     end
-    class ArraySerializer
-      def self.serialize(value)
+    class ArraySerializer < Serializer
+      def serialize(value)
         key_values = value.map.with_index{|el, i| [i, el]}
         hash = Hash[key_values]
-        HashSerializer.serialize(hash)
+        HashSerializer.new(@encoder).serialize(hash)
       end
     end
-    class StructSerializer
-      def self.serialize(value)
+    class StructSerializer < Serializer
+      def serialize(value)
         key_values = value.members.zip(value.values)
         serialized_key_values = key_values.map do |kv|
-          kv.map {|el| Encoder.serialize(el)}
+          kv.map {|el| @encoder.serialize(el)}
         end
         class_name = value.class.to_s.gsub(/^Struct::/,'')
         %|o:#{class_name.bytesize}:"#{class_name}":#{key_values.size}:{#{serialized_key_values.flatten.join}}|

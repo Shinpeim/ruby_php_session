@@ -1,6 +1,7 @@
 # PHPSession
 [![Build Status](https://travis-ci.org/Shinpeim/ruby_php_session.png?branch=master)](https://travis-ci.org/Shinpeim/ruby_php_session)
 
+## Description
 PHPSession is a php session file reader/writer. Multibyte string and exclusive control are supported.
 
 When decoding php session data to ruby objects,
@@ -14,6 +15,35 @@ When encoding ruby objects to php session data,
 * Instances of Struct::ClassName in ruby is mapped to a objects in PHP.
 * Arrays in ruby is mapped to a associative arrays which's keys are integer in PHP.
 * Hashes in ruby is mapped to a associative arrays which's keys are string in PHP.
+
+### Multibyte support
+
+Passing option to PHPSession.new, you can handle encodings.
+
+Options are:
+
+* :internal_encoding
+    
+    When this value is not nil, Session decoder tries to
+    encode string values into this encoding.
+    
+    For a instance, if your php session file written in EUC-JP and you
+    like to handle string as UTF-8 in Ruby, you should set :internal_encoding
+    as "UTF-8" and :external_encoding as "EUC-JP".
+
+    Default value is Encoding.default_internal.
+    
+* :external_encoding
+    
+    This value should be same as php session file's encoding.
+    Encoder tries to encode string values into this encoding.
+    
+    Default value is Encoding.default_external.
+    
+* :encoding_option
+    
+    This value is passed to String#encode.
+
 
 ## Installation
 
@@ -33,7 +63,7 @@ Or install it yourself as:
     # initialize
     option = {
         :internal_encoding => "UTF-8",  # value will be decoded as UTF-8
-        :external_encoding => "EUC-JP", # encoding of sesion file is ECU-JP
+        :external_encoding => "EUC-JP", # encoding of sesion file is EUC-JP
         :encoding_option   => {:undef => :replace} # passed to String#encode
     }
     # option's default values are 
@@ -45,6 +75,8 @@ Or install it yourself as:
     begin
       # load session data from file and obtain a lock
       data = session.load
+      
+      data.is_a? Hash # => true
 
       # save session and release the lock
       session.commit(data)

@@ -17,6 +17,13 @@ describe PHPSession::Encoder do
         ).to eq('hoge|s:9:"テスト";')
       end
     end
+    context "when given multi string value with external encoding" do
+      it "should return 'KEY|SERIALIZED_STRING'" do
+        expect(
+          PHPSession::Encoder.encode({:hoge => "テスト🍣"}, "EUC-JP", {:undef => :replace})
+        ).to eq('hoge|s:7:"テスト?";'.encode('EUC-JP'))
+      end
+    end
     context "when given int value" do
       it "should return 'KEY|SERIALIZED_INT" do
         expect(

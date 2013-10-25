@@ -92,12 +92,19 @@ describe PHPSession do
     end
 
     it "should save session_data in session_file" do
-      session = PHPSession.new(@session_file[:dir_name], @session_file[:session_id])
+      option = {
+        :external_encoding => "EUC-JP",
+        :internal_encoding => "UTF-8",
+        :encoding_option   => {:undef => :replace}
+      }
+      session = PHPSession.new(@session_file[:dir_name], @session_file[:session_id], option)
       data = session.load
-      data["key"] = "b"
+      data["key"] = "テスト🍣"
       session.commit(data)
 
-      expect(IO.read(@session_file[:file_path])).to eq('key|s:1:"b";')
+      # read in bytesequence mode to avoid encoding conversion
+      byte_sequence = IO.read(@session_file[:file_path], File.size(@session_file[:file_path]))
+      expect(byte_sequence.force_encoding('EUC-JP')).to eq('key|s:7:"テスト?";'.encode("EUC-JP"))
     end
 
     after do
