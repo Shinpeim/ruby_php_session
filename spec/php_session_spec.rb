@@ -107,6 +107,13 @@ describe PHPSession do
       expect(byte_sequence.force_encoding('EUC-JP')).to eq('key|s:7:"テスト?";'.encode("EUC-JP"))
     end
 
+    it "should save session data even if session_file is not loaded" do
+      session = PHPSession.new(@session_file[:dir_name])
+      expect {
+        session.commit({:hoge => "nyan"})
+      }.not_to raise_error
+    end
+
     after do
       File.delete(@session_file[:file_path])
     end

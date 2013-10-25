@@ -44,6 +44,7 @@ class PHPSession
   end
 
   def commit(data)
+    self.load(@session_id) unless @file
     @file.truncate(0)
     @file.write(Encoder.encode(data, @option[:external_encoding], @option[:encoding_option]))
     ensure_file_closed
