@@ -2,15 +2,16 @@
 class PHPSession
   class Decoder
     attr_accessor :buffer, :state, :stack, :array
-    attr_reader :encoding
+    attr_reader :encoding, :encoding_option
 
-    def self.decode(string, encoding = "UTF-8")
-      self.new(string, encoding).decode
+    def self.decode(string, encoding = nil, encoding_option = {})
+      self.new(string, encoding, encoding_option).decode
     end
 
-    def initialize(string, encoding)
+    def initialize(string, encoding, encoding_option)
       @encoding = encoding
-      @buffer = string.force_encoding("ASCII-8BIT")
+      @encoding_option = encoding_option
+      @buffer = string
       @data = {}
       @state = State::VarName
       @stack = []
@@ -172,11 +173,11 @@ class PHPSession
           length = decoder.stack.pop
           length_include_quotes = length + 3
 
-          value_include_quotes = decoder.buffer[0, length_include_quotes]
+          value_include_quotes = decoder.buffer.byteslice(0, length_include_quotes)
           value = value_include_quotes.gsub(/^"/,'').gsub(/";$/, '')
-          value.force_encoding(decoder.encoding)
 
-          decoder.buffer = decoder.buffer[length_include_quotes .. -1]
+          value = value.encode(decoder.encoding, decoder.encoding_option) if decoder.encoding
+          decoder.buffer = decoder.buffer.byteslice(length_include_quotes .. -1)
 
           decoder.process_value(value)
         end
