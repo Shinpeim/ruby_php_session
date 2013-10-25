@@ -31,7 +31,16 @@ Or install it yourself as:
 
 ## Usage
     # initialize
-    session = PHPSession.new(session_file_dir, session_id)
+    option = {
+        :internal_encoding => "UTF-8",  # value will be decoded as UTF-8
+        :external_encoding => "EUC-JP", # encoding of sesion file is ECU-JP
+        :encoding_option   => {:undef => :replace} # passed to String#encode
+    }
+    # option's default values are 
+    # :internal_encoding => Encoding.default_internal_encoding
+    # :external_encoding => Encoding.default_external_encoding
+    # :encoding_option   => {}
+    session = PHPSession.new(session_file_dir, session_id, option)
 
     begin
       # load session data from file and obtain a lock

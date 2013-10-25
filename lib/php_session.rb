@@ -6,7 +6,13 @@ require "php_session/encoder"
 
 class PHPSession
   attr_reader :data
-  def initialize(session_dir, session_id)
+  def initialize(session_dir, session_id, option = {})
+    default_option = {
+      :internal_encoding => Encoding.default_internal,
+      :external_encoding => Encoding.default_external,
+      :encoding_option => {},
+    }
+    @option = default_option.merge(option)
     @session_dir = File.expand_path(session_dir)
     set_session_id(session_id)
 
@@ -20,7 +26,9 @@ class PHPSession
       raise PHPSession::Errors, "can't obtain lock of session file"
     end
 
-    data = Decoder.decode(@file.read) || {}
+    # set internal_encoding to nil to avoid encoding conversion
+    @file.set_encoding(@option[:external_encoding], nil)
+    data = Decoder.decode(@file.read, @option[:internal_encoding], @option[:encoding_option]) || {}
     @file.rewind
     data
   end
