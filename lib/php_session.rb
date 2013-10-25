@@ -6,7 +6,7 @@ require "php_session/encoder"
 
 class PHPSession
   attr_reader :data
-  def initialize(session_dir, session_id, option = {})
+  def initialize(session_dir, option = {})
     default_option = {
       :internal_encoding => Encoding.default_internal,
       :external_encoding => Encoding.default_external,
@@ -14,12 +14,12 @@ class PHPSession
     }
     @option = default_option.merge(option)
     @session_dir = File.expand_path(session_dir)
-    set_session_id(session_id)
 
     @file = nil
   end
 
-  def load
+  def load(session_id)
+    set_session_id(session_id)
     @file = File.open(file_path, File::CREAT|File::RDWR)
 
     unless @file.flock(File::LOCK_EX)

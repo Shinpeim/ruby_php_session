@@ -70,11 +70,11 @@ Or install it yourself as:
     # :internal_encoding => Encoding.default_internal_encoding
     # :external_encoding => Encoding.default_external_encoding
     # :encoding_option   => {}
-    session = PHPSession.new(session_file_dir, session_id, option)
+    session = PHPSession.new(session_file_dir, option)
 
     begin
       # load session data from file and obtain a lock
-      data = session.load
+      data = session.load(session_id)
 
       data.is_a? Hash # => true
 
