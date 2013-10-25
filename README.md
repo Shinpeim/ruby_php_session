@@ -1,6 +1,7 @@
 # PHPSession
 [![Build Status](https://travis-ci.org/Shinpeim/ruby_php_session.png?branch=master)](https://travis-ci.org/Shinpeim/ruby_php_session)
 [![Code Climate](https://codeclimate.com/github/Shinpeim/ruby_php_session.png)](https://codeclimate.com/github/Shinpeim/ruby_php_session)
+
 ## Description
 PHPSession is a php session file reader/writer. Multibyte string and exclusive control are supported.
 
@@ -72,21 +73,16 @@ Or install it yourself as:
     # :encoding_option   => {}
     session = PHPSession.new(session_file_dir, option)
 
-    begin
-      # load session data from file and obtain a lock
-      data = session.load(session_id)
+    # load session data from file with lock
+    data = session.load(session_id)
 
-      data.is_a? Hash # => true
+    data.is_a? Hash # => true
 
-      # save session and release the lock
-      session.commit(data)
+    # save session to a file with lock
+    session.commit(session_id, data)
 
-      # delete session file and release the lock
-      session.destroy
-    ensure
-      # please ensure that the lock is released and the file is closed.
-      session.ensure_file_closed
-    end
+    # delete session
+    session.destroy(session_id)
 
 ## Contributing
 
