@@ -5,6 +5,10 @@ class PHPSession
     attr_reader :encoding, :encoding_option
 
     def self.decode(string, encoding = nil, encoding_option = {})
+      if string.nil?
+        string = ""
+      end
+      string.chomp!
       self.new(string, encoding, encoding_option).decode
     end
 
@@ -118,7 +122,7 @@ class PHPSession
     module State
       class VarName
         def self.parse(decoder)
-          matches = /^(.*?)\|(.*)$/.match(decoder.buffer)
+          matches = /\A(.*?)\|(.*)\Z/m.match(decoder.buffer)
           raise Errors::ParseError, "invalid format" if matches.nil?
           varName = matches[1]
           decoder.buffer = matches[2]
@@ -131,35 +135,35 @@ class PHPSession
       class VarType
         def self.parse(decoder)
           case decoder.buffer
-          when /^s:(\d+):(.*)/ # string
+          when /\As:(\d+):(.*)\Z/m # string
             decoder.buffer = $2
             decoder.stack.push($1.to_i)
             decoder.state = String
-          when /^i:(-?\d+);(.*)/ #int
+          when /\Ai:(-?\d+);(.*)\Z/m #int
             decoder.buffer = $2
             decoder.process_value($1.to_i)
-          when /^d:(-?\d+(?:\.\d+)?);(.*)/ # double
+          when /\Ad:(-?\d+(?:\.\d+)?);(.*)\Z/m # double
             decoder.buffer = $2
             decoder.process_value($1.to_f)
-          when /^a:(\d+):(.*)/ # array
+          when /\Aa:(\d+):(.*)\Z/m # array
             decoder.buffer = $2
             decoder.start_array($1.to_i)
             decoder.state = ArrayStart
-          when /^(N);(.*)/ # null
+          when /\A(N);(.*)\Z/m # null
             decoder.buffer = $2
             decoder.process_value(nil)
-          when /^b:([01]);(.*)/ # boolean
+          when /\Ab:([01]);(.*)\Z/m # boolean
             decoder.buffer = $2
             bool = case $1
                    when "0" then false
                    when "1" then true
                    end
             decoder.process_value(bool)
-          when /^O:(\d+):(.*)/ # object
+          when /\AO:(\d+):(.*)\Z/m # object
             decoder.buffer = $2
             decoder.stack.push($1.to_i);
             decoder.state = ClassName
-          when /^[Rr]:(\d+);(.*)/ # reference count?
+          when /\A[Rr]:(\d+);(.*)\Z/m # reference count?
             decoder.buffer = $2
             decoder.process_value($1)
           else
@@ -174,7 +178,7 @@ class PHPSession
           length_include_quotes = length + 3
 
           value_include_quotes = decoder.buffer.byteslice(0, length_include_quotes)
-          value = value_include_quotes.gsub(/^"/,'').gsub(/";$/, '')
+          value = value_include_quotes.gsub(/\A"/,'').gsub(/";\Z/, '')
 
           value = value.encode(decoder.encoding, decoder.encoding_option) if decoder.encoding
           decoder.buffer = decoder.buffer.byteslice(length_include_quotes .. -1)
@@ -185,7 +189,7 @@ class PHPSession
 
       class ArrayStart
         def self.parse(decoder)
-          raise Errors::ParseError, "invalid array format" unless decoder.buffer =~ /^{/
+          raise Errors::ParseError, "invalid array format" unless decoder.buffer =~ /\A{/
             decoder.buffer = decoder.buffer[1..-1]
           if decoder.elements_count > 0
             decoder.state = VarType
@@ -197,7 +201,7 @@ class PHPSession
 
       class ArrayEnd
         def self.parse(decoder)
-          raise Errors::ParseError, "invalid array format" unless decoder.buffer =~ /^}/
+          raise Errors::ParseError, "invalid array format" unless decoder.buffer =~ /\A}/
             decoder.buffer = decoder.buffer[1..-1]
           next_state = decoder.in_array ? VarType : VarName;
           decoder.state = next_state
@@ -210,11 +214,11 @@ class PHPSession
           length_include_quotes = length + 3
 
           value_include_quotes = decoder.buffer[0, length_include_quotes]
-          klass = value_include_quotes.gsub(/^"/,'').gsub(/":$/,'')
+          klass = value_include_quotes.gsub(/\A"/,'').gsub(/":\Z/,'')
 
           decoder.buffer = decoder.buffer[length_include_quotes..-1]
 
-          raise Errors::ParseError, "invalid class format" unless decoder.buffer =~ /^(\d+):(.*)/
+          raise Errors::ParseError, "invalid class format" unless decoder.buffer =~ /\A(\d+):(.*)/m
           decoder.buffer = $2
           decoder.start_array($1.to_i, klass)
           decoder.state = ArrayStart
