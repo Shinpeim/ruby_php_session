@@ -178,6 +178,23 @@ EOS
           }
         })
       end
+      context 'when given nil' do
+        it "should return {}" do
+          expect(PHPSession::Decoder.decode(nil)).to eq({})
+        end
+      end
+
+      context 'when given string including \n' do
+        it 'shoud return valid session_data' do
+          session_text = %Q!key|a:2:{s:2:\"k1\";s:3:\"v\n1";s:2:"k2";s:2:"v2";}!
+          expect(PHPSession::Decoder.decode(session_text)).to eq({
+            "key" => {
+              "k1" => "v\n1",
+              "k2" => "v2"
+            }
+          })
+        end
+      end
     end
   end
 end
