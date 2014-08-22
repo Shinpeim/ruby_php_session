@@ -12,8 +12,9 @@ describe PHPSession do
         option = {
           :internal_encoding => nil,
           :external_encoding => "UTF-8",
+          :session_file_dir => @session_file[:dir_name],
         }
-        session = PHPSession.new(@session_file[:dir_name], option)
+        session = PHPSession.new(option)
         data = session.load(@session_file[:session_id])
         expect(data).to eq({"key" => "テスト🍺"})
       end
@@ -22,8 +23,9 @@ describe PHPSession do
         option = {
           :internal_encoding => "UTF-8",
           :external_encoding => "UTF-8",
+          :session_file_dir => @session_file[:dir_name],
         }
-        session = PHPSession.new(@session_file[:dir_name], option)
+        session = PHPSession.new(option)
         data = session.load(@session_file[:session_id])
         expect(data).to eq({"key" => "テスト🍺"})
       end
@@ -32,9 +34,10 @@ describe PHPSession do
         option = {
           :internal_encoding => "EUC-JP",
           :external_encoding => "UTF-8",
-          :encoding_option => {:undef => :replace}
+          :encoding_option => {:undef => :replace},
+          :session_file_dir => @session_file[:dir_name],
         }
-        session = PHPSession.new(@session_file[:dir_name], option)
+        session = PHPSession.new(option)
         data = session.load(@session_file[:session_id])
         expect(data).to eq({"key" => "テスト🍺".encode("EUC-JP", {:undef => :replace})})
       end
@@ -50,7 +53,7 @@ describe PHPSession do
       end
 
       it "should return session data" do
-        session = PHPSession.new(@session_file[:dir_name])
+        session = PHPSession.new(:session_file_dir => @session_file[:dir_name])
         data = session.load(@session_file[:session_id])
         expect(data).to eq({"key" => "a"})
       end
@@ -62,7 +65,7 @@ describe PHPSession do
 
     context "when session file dosen't exist" do
       it "should return new session data" do
-        session = PHPSession.new(Dir.tmpdir)
+        session = PHPSession.new(:session_file_dir => Dir.tmpdir)
         data = session.load("session_id")
         expect(data).to eq({})
       end
@@ -78,9 +81,10 @@ describe PHPSession do
       option = {
         :external_encoding => "EUC-JP",
         :internal_encoding => "UTF-8",
-        :encoding_option   => {:undef => :replace}
+        :encoding_option   => {:undef => :replace},
+        :session_file_dir => @session_file[:dir_name],
       }
-      session = PHPSession.new(@session_file[:dir_name], option)
+      session = PHPSession.new(option)
       data = session.load(@session_file[:session_id])
       data["key"] = "テスト🍣"
       session.save(@session_file[:session_id], data)
@@ -102,7 +106,7 @@ describe PHPSession do
       end
 
       it "should delete session file" do
-        session = PHPSession.new(@session_file[:dir_name])
+        session = PHPSession.new(:session_file_dir => @session_file[:dir_name])
         session.destroy(@session_file[:session_id])
         expect(File.exists?(@session_file[:file_path])).to eq(false)
       end

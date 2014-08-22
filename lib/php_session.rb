@@ -20,7 +20,7 @@ class PHPSession
     store_engine
   end
 
-  def initialize(session_dir, option = {})
+  def initialize(option = {})
     default_option = {
       :store_engine => :file,
 
@@ -29,8 +29,6 @@ class PHPSession
       :encoding_option => {},
     }
     @option = default_option.merge(option)
-    session_dir = File.expand_path(session_dir)
-    @option[:session_dir] = session_dir
 
     store_engine_class = self.class.store_engine_class_of(@option[:store_engine])
 

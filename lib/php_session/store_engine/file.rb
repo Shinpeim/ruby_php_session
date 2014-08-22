@@ -3,7 +3,7 @@ class PHPSession
   module StoreEngine
     class File
       def initialize(option)
-        if ! option[:session_dir]
+        if ! option[:session_file_dir]
           raise PHPSession::Errors::ParameterError , "option[:session_dir] is required"
         end
 
@@ -46,8 +46,8 @@ class PHPSession
       end
 
       def file_path(session_id)
-        path = ::File.expand_path(::File.join(@option[:session_dir], "sess_#{session_id}"))
-        raise Errors::SecurityError, "directory traversal detected" unless path.index(@option[:session_dir]) == 0
+        path = ::File.expand_path(::File.join(@option[:session_file_dir], "sess_#{session_id}"))
+        raise Errors::SecurityError, "directory traversal detected" unless path.index(@option[:session_file_dir]) == 0
         path
       end
     end
