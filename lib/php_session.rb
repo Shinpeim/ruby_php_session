@@ -3,59 +3,53 @@ require "php_session/version"
 require "php_session/errors"
 require "php_session/decoder"
 require "php_session/encoder"
+require "php_session/store_engine/file"
 
 class PHPSession
   attr_reader :data
+
+  def self.register_store_engine(engine_name, klass)
+    @engines ||= {}
+    @engines[engine_name] = klass
+  end
+
+  def self.store_engine_class_of(engine_name)
+    store_engine = @engines[engine_name]
+    raise PHPSession::Errors, "unknown sotre engine: #{engine_name}" unless store_engine
+
+    store_engine
+  end
+
   def initialize(session_dir, option = {})
     default_option = {
+      :store_engine => :file,
+
       :internal_encoding => Encoding.default_internal,
       :external_encoding => Encoding.default_external,
       :encoding_option => {},
     }
     @option = default_option.merge(option)
-    @session_dir = File.expand_path(session_dir)
+    session_dir = File.expand_path(session_dir)
+    @option[:session_dir] = session_dir
+
+    store_engine_class = self.class.store_engine_class_of(@option[:store_engine])
+
+    @store_engine = store_engine_class.new(@option)
   end
 
   def load(session_id)
-    with_lock(file_path(session_id)) do |f|
-     # set internal_encoding to nil to avoid encoding conversion
-      f.set_encoding(@option[:external_encoding], nil)
-      Decoder.decode(f.read, @option[:internal_encoding], @option[:encoding_option]) || {}
-    end
+    serialized_session = @store_engine.load(session_id)
+    Decoder.decode(serialized_session, @option[:internal_encoding], @option[:encoding_option]) || {}
   end
 
   def destroy(session_id)
-    File.delete(file_path(session_id))
-  rescue Errno::ENOENT => e
-    # file already deleted
+    @store_engine.destroy(session_id)
   end
 
   def save(session_id, data)
-    with_lock(file_path(session_id)) do |f|
-      f.truncate(0)
-      f.write(Encoder.encode(data, @option[:external_encoding], @option[:encoding_option]))
-    end
-  end
-
-  private
-
-  def with_lock(file_path)
-    File.open(file_path, File::CREAT|File::RDWR) do |f|
-      unless f.flock(File::LOCK_EX)
-        raise PHPSession::Errors, "can't obtain lock of session file"
-      end
-      yield(f)
-    end
-  end
-
-  def set_session_id(session_id)
-    @session_id = session_id
-    raise Errors::SecurityError, "directory traversal detected" unless file_path.index(@session_dir) == 0
-  end
-
-  def file_path(session_id)
-    path = File.expand_path(File.join(@session_dir, "sess_#{session_id}"))
-    raise Errors::SecurityError, "directory traversal detected" unless path.index(@session_dir) == 0
-    path
+    serialized_session = Encoder.encode(data, @option[:external_encoding], @option[:encoding_option])
+    @store_engine.save(session_id, serialized_session)
   end
 end
+
+PHPSession.register_store_engine(:file, PHPSession::StoreEngine::File)
