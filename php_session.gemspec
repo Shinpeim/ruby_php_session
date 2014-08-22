@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Shinpei Maruyama"]
   spec.email         = ["shinpeim@gmail.com"]
   spec.description   = %q{php session reader/writer}
-  spec.summary       = %q{php_session is a php session file reader/writer. Multibyte string and exclusive control is supported}
+  spec.summary       = %q{php_session is a php session file reader/writer. Multibyte string control is supported}
   spec.homepage      = "https://github.com/Shinpeim/ruby_php_session"
   spec.license       = "MIT"
 
