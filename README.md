@@ -49,6 +49,10 @@ class PHPSession
       def destroy(session_id)
         # delete session_data from your favorite storage
       end
+      
+      def exists?(session_id)
+        # return whether the session_id already exists in your storage
+      end
     end
   end
 end
