@@ -112,4 +112,28 @@ describe PHPSession do
       end
     end
   end
+
+  describe "#exists?" do
+    context "when session file exists" do
+      before do
+        @session_file = create_dummy_session_file('key|s:1:"a";')
+      end
+
+      it "should return true" do
+        session = PHPSession.new(:session_file_dir => @session_file[:dir_name])
+        expect(session.exists?(@session_file[:session_id])).to eq(true)
+      end
+    end
+
+    context "when session file does not exist" do
+      before do
+        @session_file = create_dummy_session_file('key|s:1:"a";')
+      end
+
+      it "should return false" do
+        session = PHPSession.new(:session_file_dir => @session_file[:dir_name])
+        expect(session.exists?('dummy_session_id')).to eq(false)
+      end
+    end
+  end
 end

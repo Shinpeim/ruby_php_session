@@ -33,6 +33,10 @@ class PHPSession
         # file already deleted
       end
 
+      def exists?(session_id)
+        ::File.exists?(file_path(session_id))
+      end
+
       private
 
       def with_lock(file_path)

@@ -48,6 +48,10 @@ class PHPSession
     serialized_session = Encoder.encode(data, @option[:external_encoding], @option[:encoding_option])
     @store_engine.save(session_id, serialized_session)
   end
+
+  def exists?(session_id)
+    @store_engine.exists?(session_id)
+  end
 end
 
 PHPSession.register_store_engine(:file, PHPSession::StoreEngine::File)
