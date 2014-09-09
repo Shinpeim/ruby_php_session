@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 require 'spec_helper'
 
+require 'date'
+
 describe PHPSession::Encoder do
   describe ".encode" do
     context "when given string value" do
